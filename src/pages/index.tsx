@@ -8,7 +8,6 @@ const Index = () => {
   return (
     <>
       <NavBar />
-      {console.log(data)}
       {!data
         ? null
         : data.posts.map((post) => <div key={post.id}>{post.title}</div>)}
