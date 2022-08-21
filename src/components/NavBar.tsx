@@ -32,7 +32,7 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
             logout();
           }}
           isLoading={logoutFetching}
-          variant={"link"}
+          variant="link"
         >
           Logout
         </Button>
@@ -42,7 +42,7 @@ const NavBar: React.FC<NavBarProps> = ({}) => {
 
   return (
     <Flex bg="tan" p={4}>
-      <Box ml={"auto"}>{body}</Box>
+      <Box ml="auto">{body}</Box>
     </Flex>
   );
 };
