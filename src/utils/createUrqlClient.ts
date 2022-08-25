@@ -8,6 +8,7 @@ import {
 } from "urql";
 import { pipe, tap } from "wonka";
 import {
+  DeletePostMutationVariables,
   LoginMutation,
   LogoutMutation,
   MeDocument,
@@ -89,7 +90,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => ({
     credentials: "include" as const,
     headers: ctx?.req?.headers?.cookie
       ? {
-          cookie: ctx?.req?.headers?.cookie,
+          cookie: ctx.req.headers.cookie,
         }
       : undefined,
   },
@@ -106,27 +107,43 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => ({
       },
       updates: {
         Mutation: {
+          deletePost: (_result, args, cache, __) => {
+            cache.invalidate({
+              __typename: "Post",
+              id: (args as DeletePostMutationVariables).id,
+            });
+          },
           vote: (_result, args, cache, __) => {
-            const { postId, value } = args as VoteMutationVariables;
+            const { postId } = args as VoteMutationVariables;
+            let { value } = args as VoteMutationVariables;
             const data = cache.readFragment(
               gql`
                 fragment _ on Post {
                   id
                   points
+                  voteStatus
                 }
               `,
               { id: postId } as any
             );
 
             if (data) {
-              const newPoints = (data.points as number) + value;
+              let newPoints;
+              if (data.voteStatus === value) {
+                newPoints = data.points - value;
+                value = 0;
+              } else {
+                newPoints = data.points + (!data.voteStatus ? 1 : 2) * value;
+              }
+
               cache.writeFragment(
                 gql`
-                  fragment _ on Post {
+                  fragment __ on Post {
                     points
+                    voteStatus
                   }
                 `,
-                { id: postId, points: newPoints }
+                { id: postId, points: newPoints, voteStatus: value } as any
               );
             }
           },
